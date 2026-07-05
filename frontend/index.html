@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Verdict — Shop the truth.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════════════
+   VERDICT — DESIGN TOKENS
+   Mineral, low-noise dark palette: near-black with a green undertone,
+   jade as the single primary accent (the "verdict" you can trust), brass
+   as a quiet secondary. Status colors (sage / amber / terracotta) only
+   ever appear when they're reporting something — a price, a rating, a
+   warning — never as decoration.
+   ══════════════════════════════════════════════════════════════════════ */
+:root {
+  --bg:        #0A0B10;
+  --bg1:       #0D0F16;
+  --bg2:       #12141C;
+  --bg3:       #171A24;
+  --bg4:       #1E222E;
+  --border:    rgba(237,239,245,0.07);
+  --border2:   rgba(237,239,245,0.15);
+  --ink:       #EDEFF5;
+  --ink2:      #9CA3B5;
+  --ink3:      #5A6072;
+
+  --jade:        #5E81F4;
+  --jade-dim:    rgba(94,129,244,0.14);
+  --jade-border: rgba(94,129,244,0.36);
+
+  --brass:        #D9AC55;
+  --brass-dim:    rgba(217,172,85,0.14);
+  --brass-border: rgba(217,172,85,0.32);
+
+  --stone: #8B92A8;
+
+  --sage:        #3FC6A0;
+  --sage-dim:    rgba(63,198,160,0.14);
+  --sage-border: rgba(63,198,160,0.34);
+
+  --amber:        #E8B33D;
+  --amber-dim:    rgba(232,179,61,0.14);
+  --amber-border: rgba(232,179,61,0.32);
+
+  --terracotta:        #E2695A;
+  --terracotta-dim:    rgba(226,105,90,0.14);
+  --terracotta-border: rgba(226,105,90,0.32);
+
+  --mono:  'IBM Plex Mono', monospace;
+  --sans:  'Inter', system-ui, sans-serif;
+
+  --r: 14px; --r-sm: 9px; --r-lg: 20px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--sans); font-size: 13.5px; min-height: 100dvh;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(94,129,244,0.07), transparent 60%),
+    radial-gradient(ellipse 700px 400px at 100% 0%, rgba(217,172,85,0.04), transparent 60%);
+  background-attachment: fixed;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; border: none; background: none; }
+a { color: inherit; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border2); }
+
+/* ── Layout shell ─────────────────────────────────────────────────── */
+.app { display: grid; grid-template-columns: 240px 1fr 300px; grid-template-rows: 58px 1fr 28px; min-height: 100dvh; }
+.topbar { grid-column: 1 / -1; display: flex; align-items: center; padding: 0 18px; gap: 14px; border-bottom: 1px solid var(--border); background: var(--bg1); }
+.sidebar { grid-row: 2; border-right: 1px solid var(--border); background: var(--bg1); overflow-y: auto; display: flex; flex-direction: column; }
+.main { grid-row: 2; overflow-y: auto; display: flex; flex-direction: column; min-width: 0; }
+.context { grid-row: 2; border-left: 1px solid var(--border); background: var(--bg1); overflow-y: auto; display: flex; flex-direction: column; }
+.statusbar { grid-column: 1 / -1; display: flex; align-items: center; padding: 0 18px; gap: 18px; border-top: 1px solid var(--border); background: var(--bg1); font-family: var(--mono); font-size: 10.5px; color: var(--ink3); }
+@media (max-width: 1180px) { .context { display: none; } .app { grid-template-columns: 240px 1fr; } }
+@media (max-width: 860px)  { .sidebar { display: none; } .app { grid-template-columns: 1fr; } }
+
+/* ── Topbar ───────────────────────────────────────────────────────── */
+.brand { display: flex; align-items: center; gap: 9px; }
+.brand-mark { width: 30px; height: 30px; border-radius: 9px; background: var(--jade-dim); border: 1px solid var(--jade-border); display: grid; place-items: center; flex-shrink: 0; font-size: 14px; }
+.brand-name { font-family: var(--mono); font-weight: 700; font-size: 14px; letter-spacing: 0.03em; color: var(--ink); }
+.brand-name span { color: var(--jade); }
+.brand-sub { font-size: 10.5px; color: var(--ink3); margin-top: 1px; }
+.topbar-search { flex: 1; max-width: 460px; margin: 0 auto; display: flex; align-items: center; gap: 8px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 7px 12px; color: var(--ink3); }
+.topbar-search input { flex: 1; background: transparent; border: none; outline: none; color: var(--ink); font-size: 12.5px; }
+.topbar-search input::placeholder { color: var(--ink3); }
+.kbd { font-family: var(--mono); font-size: 10px; color: var(--ink3); border: 1px solid var(--border2); border-radius: 5px; padding: 1px 5px; }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: var(--r-sm); font-size: 12.5px; font-weight: 600; transition: all 0.15s; border: 1px solid transparent; white-space: nowrap; }
+.btn-primary { background: var(--jade-dim); border-color: var(--jade-border); color: var(--jade); }
+.btn-primary:hover { background: rgba(94,129,244,0.24); }
+.btn-ghost { border-color: var(--border); color: var(--ink2); background: var(--bg2); }
+.btn-ghost:hover { border-color: var(--border2); color: var(--ink); background: var(--bg3); }
+.btn-danger { border-color: var(--terracotta-border); color: var(--terracotta); background: var(--terracotta-dim); }
+.btn-danger:hover { background: rgba(226,105,90,0.24); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-sm { padding: 5px 10px; font-size: 11.5px; }
+.btn-block { width: 100%; justify-content: center; }
+.btn-icon { width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: 9px; border: 1px solid var(--border); background: var(--bg2); color: var(--ink3); }
+.btn-icon:hover { color: var(--ink); border-color: var(--border2); }
+.avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--brass-dim); border: 1px solid var(--brass-border); color: var(--brass); display: grid; place-items: center; font-family: var(--mono); font-size: 11px; font-weight: 700; }
+
+/* ── Sidebar ──────────────────────────────────────────────────────── */
+.s-section { padding: 14px; border-bottom: 1px solid var(--border); }
+.s-title { font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); margin: 4px 0 8px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 9px; border-radius: var(--r-sm); font-size: 13px; color: var(--ink2); margin-bottom: 1px; cursor: pointer; transition: all 0.12s; }
+.nav-item:hover { background: var(--bg2); color: var(--ink); }
+.nav-item.active { background: var(--jade-dim); color: var(--jade); font-weight: 600; }
+.nav-item .ni-icon { width: 16px; text-align: center; opacity: 0.85; flex-shrink: 0; }
+.signal-row { display: flex; align-items: center; gap: 8px; padding: 5px 2px; font-size: 12px; color: var(--ink2); }
+.signal-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.signal-row .sr-count { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--ink3); background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 1px 7px; }
+.status-pill { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg2); color: var(--ink2); }
+.led { width: 6px; height: 6px; border-radius: 50%; background: var(--terracotta); transition: all 0.3s; }
+.led.on { background: var(--sage); box-shadow: 0 0 7px var(--sage); }
+.sidebar-footer { margin-top: auto; padding: 14px; font-size: 10.5px; color: var(--ink3); line-height: 1.5; border-top: 1px solid var(--border); }
+
+/* ── Main / page chrome ───────────────────────────────────────────── */
+.page { padding: 22px 26px 40px; flex: 1; }
+.crumbs { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; }
+.crumbs .sep { opacity: 0.5; }
+.page-title { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.03em; color: var(--ink); margin-bottom: 0.2rem; }
+.page-desc { font-size: 0.92rem; color: var(--ink2); margin-bottom: 0.25rem; }
+.section-header { font-family: var(--mono); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink2); margin: 1.75rem 0 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+.hr { height: 1px; background: var(--border); border: none; }
+.grid { display: grid; gap: 12px; }
+.grid-2 { grid-template-columns: 1fr 1fr; }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-5 { grid-template-columns: repeat(5, 1fr); }
+@media (max-width: 1000px) { .grid-3, .grid-4, .grid-5 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px)  { .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr; } }
+.flex { display: flex; }
+.between { justify-content: space-between; }
+.gap-10 { gap: 10px; }
+.mt-8 { margin-top: 8px; }
+.small { font-size: 11.5px; }
+.muted { color: var(--ink3); }
+
+/* ── Cards / KPIs ─────────────────────────────────────────────────── */
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; transition: border-color .15s; }
+.card:hover { border-color: var(--border2); }
+.kpi-title { font-family: var(--mono); font-size: 10.5px; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+.kpi-value { font-size: 1.5rem; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; }
+.kpi-sub { font-size: 11px; color: var(--ink3); margin-top: 5px; }
+
+/* ── Badges ───────────────────────────────────────────────────────── */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; font-family: var(--mono); white-space: nowrap; }
+.badge-jade   { background: var(--jade-dim); color: var(--jade); border: 1px solid var(--jade-border); }
+.badge-sage   { background: var(--sage-dim); color: var(--sage); border: 1px solid var(--sage-border); }
+.badge-amber  { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-border); }
+.badge-brass  { background: var(--brass-dim); color: var(--brass); border: 1px solid var(--brass-border); }
+.badge-terracotta { background: var(--terracotta-dim); color: var(--terracotta); border: 1px solid var(--terracotta-border); }
+
+/* ── Inputs ───────────────────────────────────────────────────────── */
+.input, textarea.input, select.input {
+  width: 100%; background: var(--bg2); border: 1px solid var(--border); color: var(--ink);
+  border-radius: var(--r-sm); padding: 9px 12px; font-size: 12.5px; outline: none; transition: border-color .12s;
+  font-family: var(--sans);
+}
+.input:focus { border-color: var(--jade-border); }
+.input::placeholder { color: var(--ink3); }
+label.field-label { display: block; font-size: 11px; font-weight: 600; color: var(--ink3); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* ── Product cards ────────────────────────────────────────────────── */
+.p-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; transition: border-color .15s; display: flex; flex-direction: column; }
+.p-card:hover { border-color: var(--jade-border); }
+.p-img { width: 100%; height: 130px; border-radius: 9px; object-fit: cover; background: var(--bg3); margin-bottom: 10px; }
+.p-img-empty { width: 100%; height: 130px; border-radius: 9px; background: var(--bg3); display: grid; place-items: center; color: var(--ink3); font-size: 1.6rem; margin-bottom: 10px; }
+.p-brand { font-family: var(--mono); font-size: 10px; color: var(--ink3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.p-name { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.35; margin: 4px 0 8px; min-height: 2.6em; overflow: hidden; }
+.p-price-row { display: flex; align-items: baseline; gap: 6px; }
+.p-price { font-size: 1.15rem; font-weight: 800; color: var(--ink); }
+.p-price-orig { font-size: 11px; color: var(--ink3); text-decoration: line-through; }
+.p-meta-row { margin-top: 6px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.p-rating { font-size: 11.5px; font-weight: 600; color: var(--amber); }
+.p-actions { margin-top: 12px; display: flex; gap: 6px; }
+.p-actions .btn { flex: 1; }
+.compare-check { display: flex; align-items: center; gap: 6px; }
+
+/* ── Chat ─────────────────────────────────────────────────────────── */
+.bubble-user { background: var(--jade-dim); color: var(--ink); border: 1px solid var(--jade-border); padding: 10px 13px; border-radius: 12px 12px 2px 12px; font-size: 12.5px; max-width: 82%; }
+.bubble-bot  { background: var(--bg3); color: var(--ink); border: 1px solid var(--border); padding: 10px 13px; border-radius: 12px 12px 12px 2px; font-size: 12.5px; max-width: 82%; }
+.bubble-label { font-family: var(--mono); font-size: 10px; color: var(--jade); margin-bottom: 4px; font-weight: 700; }
+
+/* ── Empty state / toast ──────────────────────────────────────────── */
+.empty { text-align: center; padding: 56px 24px; background: var(--bg2); border: 1px dashed var(--border2); border-radius: var(--r); }
+.empty .icon { font-size: 1.8rem; margin-bottom: 10px; }
+.empty .title { font-size: 0.95rem; font-weight: 600; color: var(--ink); }
+.empty .desc { font-size: 0.8rem; color: var(--ink3); margin-top: 5px; }
+#toastHost { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 999; }
+.toast { font-family: var(--mono); font-size: 12px; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border2); background: var(--bg3); color: var(--ink); box-shadow: 0 6px 18px rgba(0,0,0,0.35); animation: toastin .18s ease; }
+.toast.ok  { border-color: var(--sage-border); color: var(--sage); }
+.toast.err { border-color: var(--terracotta-border); color: var(--terracotta); }
+@keyframes toastin { from { opacity:0; transform: translateY(6px);} to { opacity:1; transform: translateY(0);} }
+
+/* ── Chips ────────────────────────────────────────────────────────── */
+.chip { display: inline-flex; align-items: center; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg2); color: var(--ink2); font-size: 11.5px; cursor: pointer; transition: all .12s; }
+.chip:hover { border-color: var(--jade-border); color: var(--jade); }
+
+/* ── Progress ─────────────────────────────────────────────────────── */
+.progress { height: 8px; border-radius: 999px; background: var(--bg3); overflow: hidden; }
+.progress > div { height: 100%; background: var(--jade); border-radius: 999px; transition: width .3s; }
+
+/* ── Table ────────────────────────────────────────────────────────── */
+table.cmp { width: 100%; border-collapse: collapse; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+table.cmp th { background: var(--bg3); text-align: left; font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink3); padding: 10px 14px; border-bottom: 1px solid var(--border); }
+table.cmp td { padding: 10px 14px; font-size: 12.5px; color: var(--ink); border-bottom: 1px solid var(--border); }
+table.cmp tr:last-child td { border-bottom: none; }
+
+/* ── Auth screen ──────────────────────────────────────────────────── */
+#authScreen { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.auth-box { width: 100%; max-width: 380px; background: var(--bg1); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 32px; }
+.auth-brand { display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 4px; }
+.auth-sub { text-align: center; color: var(--ink3); font-size: 12px; margin-bottom: 24px; }
+.auth-tabs { display: flex; border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; margin-bottom: 20px; }
+.auth-tab { flex: 1; text-align: center; padding: 8px; font-size: 12.5px; font-weight: 600; color: var(--ink3); background: var(--bg2); }
+.auth-tab.active { background: var(--jade-dim); color: var(--jade); }
+.auth-error { background: var(--terracotta-dim); border: 1px solid var(--terracotta-border); color: var(--terracotta); border-radius: var(--r-sm); padding: 8px 12px; font-size: 12px; margin-bottom: 12px; display: none; }
+.auth-hint { font-size: 11px; color: var(--ink3); text-align: center; margin-top: 14px; line-height: 1.6; }
+#appRoot[hidden], #authScreen[hidden] { display: none; }
+
+/* ── Loader ───────────────────────────────────────────────────────── */
+.spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border2); border-top-color: var(--jade); animation: spin .7s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div id="toastHost"></div>
+
+<div id="authScreen" hidden>
+  <div class="auth-box">
+    <div class="auth-brand">
+      <div class="brand-mark">⚖️</div>
+      <div class="brand-name">Ver<span>dict</span></div>
+    </div>
+    <div class="auth-sub">Shop the truth.</div>
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" data-auth-tab="login">Log In</div>
+      <div class="auth-tab" data-auth-tab="register">Sign Up</div>
+    </div>
+
+    <div class="auth-error" id="authError"></div>
+
+    <form id="loginForm">
+      <label class="field-label">Email</label>
+      <input class="input" type="email" id="loginEmail" placeholder="you@example.com" required style="margin-bottom:12px;" />
+      <label class="field-label">Password</label>
+      <input class="input" type="password" id="loginPassword" placeholder="••••••••" required style="margin-bottom:16px;" />
+      <button class="btn btn-primary btn-block" type="submit" id="loginSubmit">Log In</button>
+    </form>
+
+    <form id="registerForm" style="display:none;">
+      <label class="field-label">Name</label>
+      <input class="input" type="text" id="regName" placeholder="Your name" required style="margin-bottom:12px;" />
+      <label class="field-label">Email</label>
+      <input class="input" type="email" id="regEmail" placeholder="you@example.com" required style="margin-bottom:12px;" />
+      <label class="field-label">Password</label>
+      <input class="input" type="password" id="regPassword" placeholder="At least 6 characters" required minlength="6" style="margin-bottom:16px;" />
+      <button class="btn btn-primary btn-block" type="submit" id="registerSubmit">Create Account</button>
+    </form>
+
+    <div class="auth-hint">Demo account: <strong>demo@verdict.ai</strong> / <strong>verdict123</strong></div>
+  </div>
+</div>
+
+<div class="app" id="appRoot" hidden>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">⚖️</div>
+      <div>
+        <div class="brand-name">Ver<span>dict</span></div>
+        <div class="brand-sub">Shop the truth.</div>
+      </div>
+    </div>
+    <div class="topbar-search">
+      <span>🔎</span>
+      <input id="globalSearch" placeholder="Search products… press Enter" />
+      <span class="kbd">↵</span>
+    </div>
+    <div class="topbar-right">
+      <span class="status-pill"><span class="led" id="healthLed"></span><span id="healthText">checking…</span></span>
+      <div class="avatar" id="userAvatar" title="">U</div>
+      <button class="btn-icon" id="logoutBtn" title="Log out">⏻</button>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="s-section">
+      <div class="s-title">Navigate</div>
+      <div class="nav-item" data-nav="discover"><span class="ni-icon">🔎</span>Discover</div>
+      <div class="nav-item" data-nav="wishlist"><span class="ni-icon">♥</span>Wishlist</div>
+      <div class="nav-item" data-nav="history"><span class="ni-icon">🕐</span>Search Log</div>
+      <div class="nav-item" data-nav="budget"><span class="ni-icon">💳</span>Budget</div>
+      <div class="nav-item" data-nav="chat"><span class="ni-icon">⌗</span>Ask Verdict</div>
+    </div>
+    <div class="s-section">
+      <div class="s-title">Signals</div>
+      <div id="signalsBox">
+        <div class="signal-row"><span class="signal-dot" style="background:var(--ink3)"></span>Loading…</div>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      Verdict weighs price, discount, and rating from every retailer so you don't have to open six tabs.
+    </div>
+  </div>
+
+  <div class="main" id="mainView"></div>
+  <div class="context" id="contextView"></div>
+
+  <div class="statusbar">
+    <span id="sbView">DISCOVER</span>
+    <span id="sbProducts">0 products</span>
+    <span id="sbQuery"></span>
+    <span style="margin-left:auto;" id="sbClock"></span>
+  </div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════
+   VERDICT SPA — talks directly to the FastAPI backend at /api/v1/...
+   Served same-origin by backend/main.py (StaticFiles mount), so no
+   BACKEND_URL / CORS configuration is needed by default. Override with
+   ?api=https://your-api.example.com or localStorage.verdict_api_base if
+   you deploy the frontend separately from the backend.
+   ══════════════════════════════════════════════════════════════════════ */
+/* ── Session (JWT-based auth) ─────────────────────────────────────── */
+function uid() { return Verdict.state.user?.id; }
+function getToken() { return localStorage.getItem('verdict_token'); }
+function setSession(token, user) {
+  localStorage.setItem('verdict_token', token);
+  localStorage.setItem('verdict_user', JSON.stringify(user));
+  Verdict.state.user = user;
+}
+function clearSession() {
+  localStorage.removeItem('verdict_token');
+  localStorage.removeItem('verdict_user');
+  Verdict.state.user = null;
+}
+function initials(name) {
+  return (name || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+}
+
+const API_BASE = (() => {
+  const params = new URLSearchParams(location.search);
+  const fromQuery = params.get('api');
+  if (fromQuery) { localStorage.setItem('verdict_api_base', fromQuery); }
+  const override = fromQuery || localStorage.getItem('verdict_api_base');
+  if (override) return override.replace(/\/$/, '') + '/api/v1';
+  if (location.origin && location.origin !== 'null') return location.origin + '/api/v1';
+  return 'http://localhost:8000/api/v1';
+})();
+const HEALTH_URL = API_BASE.replace(/\/api\/v1$/, '') + '/health';
+
+const $  = (sel, ctx) => (ctx || document).querySelector(sel);
+const $$ = (sel, ctx) => [...(ctx || document).querySelectorAll(sel)];
+
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function formatINR(n) {
+  n = Number(n) || 0;
+  return '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+}
+function toast(msg, type) {
+  const host = $('#toastHost');
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type || 'ok');
+  el.textContent = msg;
+  host.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+function emptyState(icon, title, desc) {
+  return `<div class="empty"><div class="icon">${icon}</div><div class="title">${escapeHtml(title)}</div><div class="desc">${escapeHtml(desc || '')}</div></div>`;
+}
+function kpiCardHtml(title, value, sub, color) {
+  return `<div class="card"><div class="kpi-title" style="color:${color || 'var(--ink3)'};">${escapeHtml(title)}</div><div class="kpi-value" style="font-size:1.15rem;">${value}</div><div class="kpi-sub">${sub || ''}</div></div>`;
+}
+function verdictScore(p) {
+  const s = 80 + (p.discount || 0) * 0.2 + (p.rating || 0) * 2;
+  return Math.min(98, Math.round(s));
+}
+
+/* ── API layer (mirrors the shape of the old Streamlit api_client.py) ── */
+function formatApiError(detail) {
+  if (!detail) return '';
+  if (typeof detail === 'string') return detail;
+  // FastAPI/Pydantic 422s: detail is a list of {loc, msg, type}
+  if (Array.isArray(detail)) {
+    return detail.map(d => {
+      if (typeof d === 'string') return d;
+      const field = Array.isArray(d.loc) ? d.loc[d.loc.length - 1] : '';
+      return field ? `${field}: ${d.msg}` : d.msg;
+    }).filter(Boolean).join('; ');
+  }
+  if (typeof detail === 'object' && detail.msg) return detail.msg;
+  return JSON.stringify(detail);
+}
+
+async function apiRequest(method, endpoint, body, { skipAuthRedirect } = {}) {
+  try {
+    const opts = { method, headers: {} };
+    const token = getToken();
+    if (token) opts.headers['Authorization'] = `Bearer ${token}`;
+    if (body !== undefined) {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(body);
+    }
+    const res = await fetch(API_BASE + endpoint, opts);
+    let data = null;
+    try { data = await res.json(); } catch (_) { /* empty body */ }
+    if (res.status === 401 && !skipAuthRedirect) {
+      handleUnauthorized();
+    }
+    if (!res.ok) {
+      const raw = (data && (data.detail || data.error));
+      const detail = formatApiError(raw) || `Request failed (${res.status})`;
+      return { error: detail, status: res.status };
+    }
+    return data ?? {};
+  } catch (e) {
+    return { error: "Can't reach the Verdict backend. Make sure the API server is running." };
+  }
+}
+let _redirectingToLogin = false;
+function handleUnauthorized() {
+  if (_redirectingToLogin) return;
+  _redirectingToLogin = true;
+  clearSession();
+  toast('Session expired — please log in again', 'err');
+  showAuthScreen();
+  setTimeout(() => { _redirectingToLogin = false; }, 500);
+}
+function apiGet(endpoint, params, opts) {
+  let url = endpoint;
+  if (params) {
+    const entries = Object.entries(params).filter(([, v]) => v !== undefined && v !== null);
+    if (entries.length) url += '?' + new URLSearchParams(entries).toString();
+  }
+  return apiRequest('GET', url, undefined, opts);
+}
+const apiPost = (endpoint, body, opts) => apiRequest('POST', endpoint, body, opts);
+const apiDelete = (endpoint, opts) => apiRequest('DELETE', endpoint, undefined, opts);
+
+/* ── Global state ─────────────────────────────────────────────────── */
+const Verdict = {
+  state: {
+    user: null,
+    view: 'discover',
+    products: [],
+    lastQuery: '',
+    compareSelection: [],
+    wishlist: [],
+    history: [],
+    chatMessages: [],
+    signals: {},
+    pendingQuery: null,
+  },
+};
+
+function setStatus(viewName, count, query) {
+  $('#sbView').textContent = viewName;
+  $('#sbProducts').textContent = `${count} product${count === 1 ? '' : 's'}`;
+  $('#sbQuery').textContent = query ? `"${query}"` : '';
+}
+
+function nav(view) {
+  Verdict.state.view = view;
+  $$('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.nav === view));
+  const main = $('#mainView'), ctx = $('#contextView');
+  main.innerHTML = ''; ctx.innerHTML = '';
+  ({ discover: viewDiscover, wishlist: viewWishlist, history: viewHistory, budget: viewBudget, chat: viewChat })[view](main, ctx);
+  setStatus(view.toUpperCase(), Verdict.state.products.length, Verdict.state.lastQuery);
+}
+
+async function refreshSignals() {
+  const [wl, hist] = await Promise.all([
+    apiGet(`/user/wishlist/${uid()}`),
+    apiGet(`/user/history/${uid()}`, { limit: 200 }),
+  ]);
+  Verdict.state.signals = {
+    wishlistCount: (wl && !wl.error) ? wl.count : null,
+    historyCount: (hist && !hist.error) ? hist.count : null,
+  };
+  const box = $('#signalsBox');
+  if (box) {
+    const sig = Verdict.state.signals;
+    box.innerHTML = `
+      <div class="signal-row"><span class="signal-dot" style="background:var(--jade)"></span>Wishlist<span class="sr-count">${sig.wishlistCount ?? '—'}</span></div>
+      <div class="signal-row"><span class="signal-dot" style="background:var(--brass)"></span>Searches<span class="sr-count">${sig.historyCount ?? '—'}</span></div>
+      <div class="signal-row"><span class="signal-dot" style="background:var(--sage)"></span>On Screen<span class="sr-count">${Verdict.state.products.length}</span></div>
+    `;
+  }
+  if (Verdict.state.view === 'discover') renderKpiRow();
+}
+
+async function checkHealth() {
+  const led = $('#healthLed'), text = $('#healthText');
+  try {
+    const res = await fetch(HEALTH_URL);
+    if (res.ok) { led.classList.add('on'); text.textContent = 'API online'; }
+    else { led.classList.remove('on'); text.textContent = 'API error'; }
+  } catch (_) {
+    led.classList.remove('on'); text.textContent = 'API offline';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   VIEW: DISCOVER
+   ══════════════════════════════════════════════════════════════════════ */
+function viewDiscover(main, ctx) {
+  main.innerHTML = `
+    <div class="page">
+      <div class="crumbs">VERDICT <span class="sep">/</span> DISCOVER</div>
+      <div class="page-title">Discover</div>
+      <div class="page-desc">Search across retailers. Compare. Let the evidence decide.</div>
+
+      <div class="grid grid-4" style="margin:18px 0;" id="kpiRow"></div>
+
+      <div class="section-header">🔎 Search</div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="flex gap-10">
+          <input class="input" id="searchInput" placeholder="What are you shopping for?" />
+          <button class="btn btn-primary" id="searchBtn" style="min-width:100px;justify-content:center;">Search</button>
+        </div>
+        <div class="grid grid-5" style="margin-top:12px;">
+          <div><label class="field-label">Min Price</label><input class="input" type="number" id="fMinPrice" value="0" /></div>
+          <div><label class="field-label">Max Price</label><input class="input" type="number" id="fMaxPrice" value="150000" /></div>
+          <div><label class="field-label">Min Rating</label><input class="input" type="number" step="0.5" min="0" max="5" id="fMinRating" value="0" /></div>
+          <div><label class="field-label">Min Discount %</label><input class="input" type="number" min="0" max="90" id="fMinDiscount" value="0" /></div>
+          <div><label class="field-label">Sort By</label>
+            <select class="input" id="fSort">
+              <option value="relevance">Best Match</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="rating">Highest Rating</option>
+              <option value="discount">Highest Discount</option>
+            </select>
+          </div>
+        </div>
+        <div id="chipsRow" style="margin-top:12px;"></div>
+      </div>
+
+      <div id="insightsPanel"></div>
+      <div id="compareTable"></div>
+
+      <div class="section-header" id="resultsHeader">Results</div>
+      <div id="resultsGrid" class="grid grid-3"></div>
+    </div>
+  `;
+  ctx.innerHTML = `
+    <div class="s-section">
+      <div class="s-title">Compare Tray</div>
+      <div id="compareTray"></div>
+    </div>
+    <div class="s-section">
+      <div class="s-title">About Verdict Score</div>
+      <div class="small muted">A transparent blend of discount and rating (80 + discount×0.2 + rating×2, capped at 98) — not a black box.</div>
+    </div>
+  `;
+
+  $('#searchBtn').addEventListener('click', () => runDiscoverSearch());
+  $('#searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') runDiscoverSearch(); });
+
+  renderKpiRow();
+  loadRecentChips();
+  renderResults();
+  renderCompareTray();
+  renderCompareTable();
+  if (Verdict.state.products.length) loadInsights();
+
+  if (Verdict.state.pendingQuery) {
+    const pq = Verdict.state.pendingQuery;
+    Verdict.state.pendingQuery = null;
+    $('#searchInput').value = pq;
+    runDiscoverSearch(pq);
+  }
+}
+
+function runDiscoverSearch(qOverride) {
+  const query = (qOverride || $('#searchInput').value || '').trim();
+  if (!query) { toast('Type something to search for', 'err'); return; }
+  doSearch(query, {
+    min_price: Number($('#fMinPrice').value) || 0,
+    max_price: Number($('#fMaxPrice').value) || 150000,
+    min_rating: Number($('#fMinRating').value) || 0,
+    min_discount: Number($('#fMinDiscount').value) || 0,
+    sort_by: $('#fSort').value,
+  });
+}
+
+async function doSearch(query, filters) {
+  const btn = $('#searchBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin"></span>'; }
+  const grid = $('#resultsGrid');
+  if (grid) grid.innerHTML = `<div class="empty"><span class="spin" style="width:20px;height:20px;"></span><div class="desc mt-8">Searching across retailers…</div></div>`;
+
+  const result = await apiPost('/products/search', {
+    query, min_price: filters.min_price, max_price: filters.max_price,
+    min_rating: filters.min_rating, min_discount: filters.min_discount,
+    sort_by: filters.sort_by, user_id: uid(),
+  });
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Search'; }
+
+  if (!result || result.error) {
+    toast(result?.error || 'Search failed', 'err');
+    if (grid) grid.innerHTML = emptyState('⚠️', 'Search failed', result?.error || 'Try again in a moment.');
+    return;
+  }
+
+  Verdict.state.products = result.products || [];
+  Verdict.state.lastQuery = query;
+  Verdict.state.compareSelection = [];
+  renderResults();
+  renderKpiRow();
+  renderCompareTray();
+  renderCompareTable();
+  loadInsights();
+  refreshSignals();
+  setStatus('DISCOVER', Verdict.state.products.length, query);
+}
+
+function renderKpiRow() {
+  const row = $('#kpiRow'); if (!row) return;
+  const products = Verdict.state.products;
+  const avgDiscount = products.length
+    ? (products.reduce((a, p) => a + (p.discount || 0), 0) / products.length).toFixed(1) + '%'
+    : '—';
+  const sig = Verdict.state.signals || {};
+  row.innerHTML = [
+    kpiCardHtml('Products On Screen', products.length, products.length ? `for "${escapeHtml(Verdict.state.lastQuery)}"` : 'run a search', 'var(--ink)'),
+    kpiCardHtml('Wishlist Items', sig.wishlistCount ?? '—', 'saved for later', 'var(--jade)'),
+    kpiCardHtml('Avg. Discount', avgDiscount, 'across current results', 'var(--sage)'),
+    kpiCardHtml('Searches Logged', sig.historyCount ?? '—', 'total to date', 'var(--brass)'),
+  ].join('');
+}
+
+async function loadRecentChips() {
+  const row = $('#chipsRow'); if (!row) return;
+  const res = await apiGet(`/user/history/${uid()}`, { limit: 6 });
+  let chips = [], label = 'TRY SEARCHING FOR';
+  if (res && !res.error && res.items?.length) {
+    chips = res.items.map(i => i.query).filter(Boolean);
+    label = 'RECENT SEARCHES';
+  }
+  if (!chips.length) chips = ['Mechanical Keyboard', 'Wireless Earbuds ANC', 'Minimalist Backpack', 'Oversized Hoodie'];
+  row.innerHTML = `<div class="small muted" style="font-family:var(--mono);letter-spacing:0.05em;margin-bottom:8px;">${label}</div>` +
+    chips.map(c => `<span class="chip" data-chip="${escapeHtml(c)}" style="margin-right:6px;margin-bottom:6px;">${escapeHtml(c)}</span>`).join('');
+  $$('.chip', row).forEach(el => el.addEventListener('click', () => {
+    $('#searchInput').value = el.dataset.chip;
+    runDiscoverSearch(el.dataset.chip);
+  }));
+}
+
+function renderResults() {
+  const grid = $('#resultsGrid'); if (!grid) return;
+  const products = Verdict.state.products;
+  const header = $('#resultsHeader');
+  if (header) header.textContent = products.length ? `Results for "${Verdict.state.lastQuery}"` : 'Results';
+  if (!products.length) {
+    grid.className = '';
+    grid.innerHTML = emptyState('🔎', 'No products yet', 'Run a search above to bring in live results.');
+    return;
+  }
+  grid.className = 'grid grid-3';
+  grid.innerHTML = products.map((p, i) => productCardHtml(p, i)).join('');
+  $$('.p-save', grid).forEach(btn => btn.addEventListener('click', () => saveToWishlist(Number(btn.dataset.idx))));
+  $$('.p-compare', grid).forEach(btn => btn.addEventListener('click', () => toggleCompare(Number(btn.dataset.idx))));
+}
+
+function productCardHtml(p, idx) {
+  const inCompare = Verdict.state.compareSelection.some(x => x.name === p.name && x.website === p.website);
+  const img = p.image_url
+    ? `<img class="p-img" src="${escapeHtml(p.image_url)}" alt="" loading="lazy" />`
+    : `<div class="p-img-empty">📦</div>`;
+  const name = p.name || '';
+  return `
+  <div class="p-card">
+    <div class="flex between" style="margin-bottom:8px;">
+      <span class="badge badge-brass">${escapeHtml(p.website)}</span>
+      <span class="badge badge-jade">Verdict ${verdictScore(p)}</span>
+    </div>
+    ${img}
+    <div class="p-brand">${escapeHtml(p.brand || 'Generic')}</div>
+    <div class="p-name">${escapeHtml(name.slice(0, 60))}${name.length > 60 ? '…' : ''}</div>
+    <div class="p-price-row">
+      <span class="p-price">${formatINR(p.price)}</span>
+      ${p.original_price && p.original_price > p.price ? `<span class="p-price-orig">${formatINR(p.original_price)}</span>` : ''}
+    </div>
+    <div class="p-meta-row">
+      <span class="p-rating">★ ${p.rating}</span>
+      ${p.discount > 0 ? `<span class="badge badge-sage">${p.discount.toFixed(0)}% off</span>` : ''}
+    </div>
+    <div class="p-actions">
+      <a class="btn btn-ghost" href="${escapeHtml(p.product_url)}" target="_blank" rel="noopener">View</a>
+      <button class="btn btn-ghost p-save" data-idx="${idx}">♥ Save</button>
+      <button class="btn ${inCompare ? 'btn-primary' : 'btn-ghost'} p-compare" data-idx="${idx}">${inCompare ? 'Added' : 'Compare'}</button>
+    </div>
+  </div>`;
+}
+
+async function saveToWishlist(idx) {
+  const p = Verdict.state.products[idx];
+  const res = await apiPost('/user/wishlist/add', { user_id: uid(), product: p });
+  if (res && !res.error) { toast('Saved to wishlist'); refreshSignals(); }
+  else toast(res?.error || 'Could not save', 'err');
+}
+
+function toggleCompare(idx) {
+  const p = Verdict.state.products[idx];
+  const sel = Verdict.state.compareSelection;
+  const existing = sel.findIndex(x => x.name === p.name && x.website === p.website);
+  if (existing >= 0) {
+    sel.splice(existing, 1);
+  } else {
+    if (sel.length >= 3) { toast('You can compare up to 3 items at a time', 'err'); return; }
+    sel.push(p);
+  }
+  renderResults();
+  renderCompareTray();
+  renderCompareTable();
+}
+
+function renderCompareTray() {
+  const box = $('#compareTray'); if (!box) return;
+  const sel = Verdict.state.compareSelection;
+  if (!sel.length) { box.innerHTML = `<div class="small muted">Select up to 3 products to compare.</div>`; return; }
+  box.innerHTML = sel.map((p, i) => `
+    <div class="flex between" style="padding:6px 0;border-bottom:1px solid var(--border);align-items:center;">
+      <span class="small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px;">${escapeHtml(p.name)}</span>
+      <button class="btn-icon" data-remove-idx="${i}" title="Remove">✕</button>
+    </div>`).join('') +
+    (sel.length >= 2
+      ? `<button class="btn btn-primary btn-block mt-8" id="aiCompareBtn">⌗ Ask Verdict to Compare</button>`
+      : `<div class="small muted mt-8">Add ${2 - sel.length} more to compare.</div>`);
+  $$('[data-remove-idx]', box).forEach(btn => btn.addEventListener('click', () => {
+    sel.splice(Number(btn.dataset.removeIdx), 1);
+    renderResults(); renderCompareTray(); renderCompareTable();
+  }));
+  $('#aiCompareBtn')?.addEventListener('click', fetchAiComparison);
+}
+
+function renderCompareTable() {
+  const box = $('#compareTable'); if (!box) return;
+  const sel = Verdict.state.compareSelection;
+  if (sel.length < 2) { box.innerHTML = ''; return; }
+  const rows = [
+    ['Retailer', sel.map(p => p.website)],
+    ['Price', sel.map(p => formatINR(p.price))],
+    ['Discount', sel.map(p => `${(p.discount || 0).toFixed(0)}% off`)],
+    ['Rating', sel.map(p => `${p.rating} ★`)],
+    ['Brand', sel.map(p => p.brand || '-')],
+  ];
+  box.innerHTML = `
+    <div class="section-header">⚖️ Side-by-Side</div>
+    <table class="cmp" style="margin-bottom:14px;">
+      <thead><tr><th>Spec</th>${sel.map(p => `<th>${escapeHtml((p.name || '').slice(0, 20))}${(p.name || '').length > 20 ? '…' : ''}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(([label, vals]) => `<tr><td style="font-weight:600;color:var(--ink3);">${label}</td>${vals.map(v => `<td>${escapeHtml(String(v))}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table>
+    <div id="aiCompareSummary"></div>
+  `;
+}
+
+async function fetchAiComparison() {
+  const box = $('#aiCompareSummary');
+  if (box) box.innerHTML = `<div class="card small muted"><span class="spin"></span> Asking Verdict…</div>`;
+  const res = await apiPost('/advisor/compare', { products: Verdict.state.compareSelection });
+  if (!box) return;
+  if (!res || res.error) {
+    box.innerHTML = `<div class="card small" style="color:var(--terracotta);">${escapeHtml(res?.error || 'Comparison failed.')}</div>`;
+    return;
+  }
+  box.innerHTML = `<div class="card" style="border-color:var(--jade-border);">
+    <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--jade);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">⌗ AI Verdict</div>
+    <div style="font-size:12.5px;color:var(--ink2);line-height:1.55;">${escapeHtml(res.summary)}</div>
+  </div>`;
+}
+
+async function loadInsights() {
+  const box = $('#insightsPanel'); if (!box) return;
+  const products = Verdict.state.products;
+  if (!products.length) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="section-header">⚡ The Verdict</div><div class="empty"><span class="spin"></span><div class="desc mt-8">Weighing the evidence…</div></div>`;
+  const result = await apiPost('/insights/generate', { products, query: Verdict.state.lastQuery });
+  if (!$('#insightsPanel')) return; // view changed while awaiting
+  if (!result || result.error) {
+    box.innerHTML = `<div class="section-header">⚡ The Verdict</div><div class="card small muted">Couldn't reach the insights engine — results are still below.</div>`;
+    return;
+  }
+  const cards = [];
+  if (result.lowest_price) cards.push(kpiCardHtml('Lowest Price', formatINR(result.lowest_price.price), 'on ' + escapeHtml(result.lowest_price.website), 'var(--jade)'));
+  if (result.highest_discount) cards.push(kpiCardHtml('Best Discount', `${result.highest_discount.discount.toFixed(0)}% off`, 'on ' + escapeHtml(result.highest_discount.website), 'var(--sage)'));
+  if (result.best_rated) cards.push(kpiCardHtml('Top Rated', `${result.best_rated.rating} ★`, 'highest-rated match', 'var(--amber)'));
+  if (result.best_value?.name) cards.push(kpiCardHtml('Best Value', escapeHtml((result.best_value.name || '').slice(0, 26)), escapeHtml((result.best_value.reason || 'rating-to-price winner').slice(0, 70)), 'var(--brass)'));
+  box.innerHTML = `
+    <div class="section-header">⚡ The Verdict</div>
+    <div class="grid grid-4" style="margin-bottom:14px;">${cards.join('')}</div>
+    ${result.summary ? `<div class="card" style="border-color:var(--jade-border);margin-bottom:8px;">
+      <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--jade);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">⌗ AI Summary</div>
+      <div style="font-size:12.5px;color:var(--ink2);line-height:1.55;">${escapeHtml(result.summary)}</div>
+    </div>` : ''}
+  `;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   VIEW: WISHLIST
+   ══════════════════════════════════════════════════════════════════════ */
+function viewWishlist(main, ctx) {
+  main.innerHTML = `
+    <div class="page">
+      <div class="crumbs">VERDICT <span class="sep">/</span> WISHLIST</div>
+      <div class="flex between" style="align-items:flex-start;">
+        <div>
+          <div class="page-title">Wishlist</div>
+          <div class="page-desc">Everything you've saved for later.</div>
+        </div>
+        <button class="btn btn-danger" id="wlClearAll">Clear All</button>
+      </div>
+      <div class="grid grid-3" style="margin:16px 0;" id="wlKpis"></div>
+      <div class="flex gap-10" style="margin-bottom:14px;">
+        <input class="input" id="wlFilter" placeholder="Filter by product name…" />
+        <select class="input" id="wlSort" style="max-width:220px;">
+          <option value="latest">Latest Added</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+        </select>
+      </div>
+      <div id="wishlistList"></div>
+    </div>
+  `;
+  ctx.innerHTML = `<div class="s-section"><div class="s-title">Tip</div><div class="small muted">Save products from Discover with the ♥ button — they'll show up here instantly.</div></div>`;
+  $('#wlFilter').addEventListener('input', renderWishlistList);
+  $('#wlSort').addEventListener('change', renderWishlistList);
+  $('#wlClearAll').addEventListener('click', clearAllWishlist);
+  loadWishlist();
+}
+
+async function loadWishlist() {
+  const list = $('#wishlistList');
+  list.innerHTML = `<div class="empty"><span class="spin"></span><div class="desc mt-8">Loading wishlist…</div></div>`;
+  const res = await apiGet(`/user/wishlist/${uid()}`);
+  if (!res || res.error) { list.innerHTML = emptyState('⚠️', 'Could not load wishlist', res?.error || ''); return; }
+  Verdict.state.wishlist = res.items || [];
+  renderWishlistKpis();
+  renderWishlistList();
+}
+
+function renderWishlistKpis() {
+  const box = $('#wlKpis'); if (!box) return;
+  const items = Verdict.state.wishlist;
+  const total = items.reduce((a, i) => a + (i.price || 0), 0);
+  const avgRating = items.length ? items.reduce((a, i) => a + (i.rating || 0), 0) / items.length : 0;
+  box.innerHTML = [
+    kpiCardHtml('Saved Items', items.length, '', 'var(--ink)'),
+    kpiCardHtml('Total Value', formatINR(total), '', 'var(--jade)'),
+    kpiCardHtml('Avg. Rating', avgRating.toFixed(2) + ' ★', '', 'var(--amber)'),
+  ].join('');
+}
+
+function renderWishlistList() {
+  const list = $('#wishlistList'); if (!list) return;
+  let items = [...Verdict.state.wishlist];
+  const filterText = ($('#wlFilter')?.value || '').toLowerCase();
+  if (filterText) items = items.filter(i => (i.product_name || '').toLowerCase().includes(filterText));
+  const sortMode = $('#wlSort')?.value || 'latest';
+  if (sortMode === 'price_asc') items.sort((a, b) => a.price - b.price);
+  else if (sortMode === 'price_desc') items.sort((a, b) => b.price - a.price);
+  else items.sort((a, b) => new Date(b.saved_at) - new Date(a.saved_at));
+
+  if (!items.length) { list.innerHTML = emptyState('♥', 'No matches', 'Try a different filter, or save products from Discover.'); return; }
+
+  list.innerHTML = items.map(i => `
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(i.product_name)}</div>
+        <div class="flex gap-10" style="margin-top:6px;align-items:center;">
+          <span class="badge badge-brass">${escapeHtml(i.website)}</span>
+          <span style="font-weight:700;">${formatINR(i.price)}</span>
+          <span class="p-rating">★ ${i.rating ?? '-'}</span>
+        </div>
+      </div>
+      <div class="flex gap-10">
+        <a class="btn btn-ghost btn-sm" href="${escapeHtml(i.product_url)}" target="_blank" rel="noopener">View</a>
+        <button class="btn btn-danger btn-sm" data-remove-id="${i.id}">Remove</button>
+      </div>
+    </div>`).join('');
+  $$('[data-remove-id]', list).forEach(btn => btn.addEventListener('click', () => removeWishlistItem(Number(btn.dataset.removeId))));
+}
+
+async function removeWishlistItem(id) {
+  const res = await apiDelete(`/user/wishlist/${uid()}/${id}`);
+  if (res && !res.error) { toast('Removed from wishlist'); loadWishlist(); refreshSignals(); }
+  else toast(res?.error || 'Could not remove', 'err');
+}
+
+async function clearAllWishlist() {
+  if (!Verdict.state.wishlist.length) return;
+  if (!confirm('Clear your entire wishlist? This cannot be undone.')) return;
+  const res = await apiDelete(`/user/wishlist/${uid()}/clear`);
+  if (res && !res.error) { toast('Wishlist cleared'); loadWishlist(); refreshSignals(); }
+  else toast(res?.error || 'Could not clear wishlist', 'err');
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   VIEW: SEARCH LOG (HISTORY)
+   ══════════════════════════════════════════════════════════════════════ */
+function viewHistory(main, ctx) {
+  main.innerHTML = `
+    <div class="page">
+      <div class="crumbs">VERDICT <span class="sep">/</span> SEARCH LOG</div>
+      <div class="flex between" style="align-items:flex-start;">
+        <div>
+          <div class="page-title">Search Log</div>
+          <div class="page-desc">Every search you've run, and a quick way to run it again.</div>
+        </div>
+        <button class="btn btn-danger" id="histClearBtn">Clear All</button>
+      </div>
+      <div class="grid grid-2" style="margin:16px 0;" id="histKpis"></div>
+      <div class="section-header">Recent Searches</div>
+      <div id="histList"></div>
+    </div>
+  `;
+  ctx.innerHTML = `<div class="s-section"><div class="s-title">Tip</div><div class="small muted">Click "Re-run" to jump back to Discover with that search already applied.</div></div>`;
+  $('#histClearBtn').addEventListener('click', clearAllHistory);
+  loadHistory();
+}
+
+async function loadHistory() {
+  const list = $('#histList');
+  list.innerHTML = `<div class="empty"><span class="spin"></span><div class="desc mt-8">Loading search log…</div></div>`;
+  const res = await apiGet(`/user/history/${uid()}`, { limit: 50 });
+  if (!res || res.error) { list.innerHTML = emptyState('⚠️', 'Could not load history', res?.error || ''); return; }
+  Verdict.state.history = res.items || [];
+  const items = Verdict.state.history;
+  $('#histKpis').innerHTML = [
+    kpiCardHtml('Total Searches', items.length, '', 'var(--ink)'),
+    kpiCardHtml('Largest Result Set', items.reduce((m, i) => Math.max(m, i.result_count || 0), 0), '', 'var(--jade)'),
+  ].join('');
+  if (!items.length) { list.innerHTML = emptyState('🕐', 'No searches yet', 'Your search history will show up here.'); return; }
+  list.innerHTML = items.map(i => `
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;">
+      <div>
+        <div style="font-weight:600;font-size:13px;">🔎 ${escapeHtml(i.query)}</div>
+        <div class="small muted" style="font-family:var(--mono);margin-top:4px;">${escapeHtml(String(i.created_at || '').slice(0, 16))} · ${i.result_count || 0} results</div>
+      </div>
+      <div class="flex gap-10">
+        <button class="btn btn-ghost btn-sm" data-rerun-q="${escapeHtml(i.query)}">Re-run</button>
+        <button class="btn btn-danger btn-sm" data-del-id="${i.id}">Delete</button>
+      </div>
+    </div>`).join('');
+  $$('[data-rerun-q]', list).forEach(btn => btn.addEventListener('click', () => {
+    Verdict.state.pendingQuery = btn.dataset.rerunQ;
+    nav('discover');
+  }));
+  $$('[data-del-id]', list).forEach(btn => btn.addEventListener('click', async () => {
+    const res = await apiDelete(`/user/history/${uid()}/${btn.dataset.delId}`);
+    if (res && !res.error) { toast('Deleted'); loadHistory(); refreshSignals(); }
+    else toast(res?.error || 'Could not delete', 'err');
+  }));
+}
+
+async function clearAllHistory() {
+  if (!Verdict.state.history.length) return;
+  if (!confirm('Clear your entire search log? This cannot be undone.')) return;
+  const res = await apiDelete(`/user/history/${uid()}/clear`);
+  if (res && !res.error) { toast('Search log cleared'); loadHistory(); refreshSignals(); }
+  else toast(res?.error || 'Could not clear', 'err');
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   VIEW: BUDGET PLANNER
+   ══════════════════════════════════════════════════════════════════════ */
+function viewBudget(main, ctx) {
+  main.innerHTML = `
+    <div class="page">
+      <div class="crumbs">VERDICT <span class="sep">/</span> BUDGET</div>
+      <div class="page-title">Budget Planner</div>
+      <div class="page-desc">Tell Verdict your budget and goal — get an AI-allocated spending plan.</div>
+
+      <div class="card" style="margin-top:16px;max-width:640px;">
+        <div class="grid grid-2">
+          <div><label class="field-label">Total Budget (₹)</label><input class="input" type="number" id="budgetAmt" value="8000" min="500" max="500000" step="500" /></div>
+          <div><label class="field-label">Goal</label>
+            <select class="input" id="budgetCat">
+              <option>College outfit / Wardrobe</option>
+              <option>Office / Formal wardrobe</option>
+              <option>Gym & Fitness gear</option>
+              <option>Laptop & Tech setup</option>
+              <option value="Custom">Custom</option>
+            </select>
+          </div>
+        </div>
+        <div id="budgetDescWrap" style="display:none;margin-top:12px;">
+          <label class="field-label">Describe what you're shopping for</label>
+          <textarea class="input" id="budgetDesc" rows="2" placeholder="E.g., leather jacket, smart watch, everyday sneakers…"></textarea>
+        </div>
+        <button class="btn btn-primary btn-block" id="budgetGenBtn" style="margin-top:14px;">Generate Plan</button>
+      </div>
+
+      <div id="budgetResult"></div>
+
+      <div class="section-header">Past Plans</div>
+      <div id="budgetHistory"></div>
+    </div>
+  `;
+  ctx.innerHTML = `<div class="s-section"><div class="s-title">How it works</div><div class="small muted">Verdict asks Groq's Llama 3 to split your budget into practical categories, with a rule-based fallback split if the AI is unavailable.</div></div>`;
+  $('#budgetCat').addEventListener('change', e => {
+    $('#budgetDescWrap').style.display = e.target.value === 'Custom' ? 'block' : 'none';
+  });
+  $('#budgetGenBtn').addEventListener('click', generateBudgetPlan);
+  loadBudgetHistory();
+}
+
+async function generateBudgetPlan() {
+  const budget = Number($('#budgetAmt').value) || 0;
+  const catSelect = $('#budgetCat').value;
+  const isCustom = catSelect === 'Custom';
+  const desc = isCustom ? ($('#budgetDesc').value || '').trim() : catSelect;
+  const resultBox = $('#budgetResult');
+  const btn = $('#budgetGenBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Building your plan…';
+  resultBox.innerHTML = '';
+
+  const res = await apiPost('/user/budget/plan', {
+    user_id: uid(), budget, category: isCustom ? null : catSelect, description: desc || catSelect,
+  });
+
+  btn.disabled = false; btn.textContent = 'Generate Plan';
+
+  if (!res || res.error) {
+    resultBox.innerHTML = `<div class="card" style="color:var(--terracotta);margin-top:14px;">${escapeHtml(res?.error || 'Could not generate a plan.')}</div>`;
+    return;
+  }
+
+  const allocations = res.allocations || [];
+  const advice = res.advice || '';
+  const totalAllocated = res.total_allocated ?? budget;
+  const remaining = budget - totalAllocated;
+
+  resultBox.innerHTML = `
+    <div class="grid grid-3" style="margin:16px 0;">
+      ${kpiCardHtml('Budget', formatINR(budget), '', 'var(--ink)')}
+      ${kpiCardHtml('Allocated', formatINR(totalAllocated), '', 'var(--jade)')}
+      ${kpiCardHtml('Remaining', formatINR(remaining), '', 'var(--sage)')}
+    </div>
+    <div class="section-header">Allocation Breakdown</div>
+    <div class="card" style="margin-bottom:14px;max-width:640px;">
+      ${allocations.map(a => `
+        <div style="margin-bottom:14px;">
+          <div class="flex between" style="margin-bottom:5px;">
+            <span style="font-weight:600;font-size:12.5px;">${escapeHtml(a.item)}</span>
+            <span class="small muted">${formatINR(a.allocated)} (${(a.percentage || 0).toFixed(1)}%)</span>
+          </div>
+          <div class="progress"><div style="width:${Math.min(a.percentage || 0, 100)}%;"></div></div>
+          ${a.suggestion ? `<div class="small muted mt-8">💡 ${escapeHtml(a.suggestion)}</div>` : ''}
+        </div>`).join('')}
+    </div>
+    ${advice ? `<div class="card" style="border-color:var(--jade-border);max-width:640px;">
+      <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--jade);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">💡 Strategy Notes</div>
+      <div style="font-size:12.5px;color:var(--ink2);line-height:1.55;">${escapeHtml(advice)}</div>
+    </div>` : ''}
+  `;
+  loadBudgetHistory();
+}
+
+async function loadBudgetHistory() {
+  const box = $('#budgetHistory'); if (!box) return;
+  const res = await apiGet(`/user/budget/history/${uid()}`);
+  if (!res || res.error) { box.innerHTML = emptyState('⚠️', 'Could not load past plans', res?.error || ''); return; }
+  const plans = res.plans || [];
+  if (!plans.length) { box.innerHTML = emptyState('💳', 'No plans yet', 'Generate your first budget plan above.'); return; }
+  box.innerHTML = plans.map(p => `
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div>
+        <div style="font-weight:600;font-size:13px;">${escapeHtml(p.category || p.description || 'Custom plan')}</div>
+        <div class="small muted" style="font-family:var(--mono);margin-top:4px;">${escapeHtml(String(p.created_at || '').slice(0, 16))}</div>
+      </div>
+      <div class="kpi-value" style="font-size:1.05rem;">${formatINR(p.budget)}</div>
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   VIEW: ASK VERDICT (CHAT)
+   ══════════════════════════════════════════════════════════════════════ */
+function viewChat(main, ctx) {
+  main.innerHTML = `
+    <div class="page" style="display:flex;flex-direction:column;min-height:calc(100dvh - 86px);">
+      <div class="crumbs">VERDICT <span class="sep">/</span> ASK VERDICT</div>
+      <div class="page-title">Ask Verdict</div>
+      <div class="page-desc">Ask about the products currently on screen, or general shopping advice.</div>
+      <div class="hr" style="margin:14px 0;"></div>
+      <div id="chatMessages" style="flex:1;display:flex;flex-direction:column;gap:10px;padding:6px 0;"></div>
+      <div class="hr" style="margin:14px 0;"></div>
+      <div class="flex gap-10">
+        <input class="input" id="chatInput" placeholder="Ask a question about these products…" />
+        <button class="btn btn-primary" id="chatSendBtn">Send →</button>
+        <button class="btn btn-ghost" id="chatClearBtn">Clear</button>
+      </div>
+    </div>
+  `;
+  ctx.innerHTML = `<div class="s-section"><div class="s-title">Context</div><div class="small muted">Verdict shares the ${Verdict.state.products.length} product(s) currently on Discover with the assistant, so answers stay grounded in what you're actually looking at.</div></div>`;
+  $('#chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+  $('#chatSendBtn').addEventListener('click', sendChat);
+  $('#chatClearBtn').addEventListener('click', () => { Verdict.state.chatMessages = []; renderChatMessages(); });
+  renderChatMessages();
+}
+
+function renderChatMessages() {
+  const box = $('#chatMessages'); if (!box) return;
+  const msgs = Verdict.state.chatMessages;
+  if (!msgs.length) { box.innerHTML = emptyState('⌗', 'Start a conversation', "Ask anything about the products you've searched for."); return; }
+  box.innerHTML = msgs.map(m => {
+    if (m.role === 'user') return `<div style="display:flex;justify-content:flex-end;"><div class="bubble-user">${escapeHtml(m.content)}</div></div>`;
+    return `<div style="display:flex;justify-content:flex-start;"><div><div class="bubble-label">⌗ Verdict</div><div class="bubble-bot">${escapeHtml(m.content)}</div></div></div>`;
+  }).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendChat() {
+  const input = $('#chatInput');
+  const msg = (input.value || '').trim();
+  if (!msg) return;
+  input.value = '';
+  const priorHistory = Verdict.state.chatMessages;
+  Verdict.state.chatMessages = [...priorHistory, { role: 'user', content: msg }];
+  renderChatMessages();
+
+  const btn = $('#chatSendBtn'); if (btn) btn.disabled = true;
+  const res = await apiPost('/advisor/chat', { message: msg, history: priorHistory, current_products: Verdict.state.products });
+  if (btn) btn.disabled = false;
+
+  if (res && !res.error) {
+    Verdict.state.chatMessages = res.history || Verdict.state.chatMessages;
+  } else {
+    Verdict.state.chatMessages.push({ role: 'assistant', content: '⚠️ ' + (res?.error || 'Failed to get a response.') });
+  }
+  renderChatMessages();
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   AUTH SCREEN
+   ══════════════════════════════════════════════════════════════════════ */
+function showAuthScreen() {
+  $('#appRoot').hidden = true;
+  $('#authScreen').hidden = false;
+  $('#authError').style.display = 'none';
+}
+
+let _pollersStarted = false;
+function showApp() {
+  $('#authScreen').hidden = true;
+  $('#appRoot').hidden = false;
+  const user = Verdict.state.user;
+  const avatar = $('#userAvatar');
+  if (avatar && user) { avatar.textContent = initials(user.name); avatar.title = `${user.name} (${user.email})`; }
+  checkHealth();
+  if (!_pollersStarted) { setInterval(checkHealth, 20000); _pollersStarted = true; }
+  refreshSignals();
+  nav('discover');
+}
+
+function showAuthError(msg) {
+  const el = $('#authError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function wireAuthScreen() {
+  $$('.auth-tab').forEach(tab => tab.addEventListener('click', () => {
+    $$('.auth-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const isLogin = tab.dataset.authTab === 'login';
+    $('#loginForm').style.display = isLogin ? 'block' : 'none';
+    $('#registerForm').style.display = isLogin ? 'none' : 'block';
+    $('#authError').style.display = 'none';
+  }));
+
+  $('#loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('#loginSubmit');
+    btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
+    const res = await apiPost('/auth/login', {
+      email: $('#loginEmail').value.trim(),
+      password: $('#loginPassword').value,
+    }, { skipAuthRedirect: true });
+    btn.disabled = false; btn.textContent = 'Log In';
+    if (!res || res.error) { showAuthError(res?.error || 'Login failed.'); return; }
+    setSession(res.access_token, res.user);
+    toast(`Welcome back, ${res.user.name.split(' ')[0]}`);
+    showApp();
+  });
+
+  $('#registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('#registerSubmit');
+    btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
+    const res = await apiPost('/auth/register', {
+      name: $('#regName').value.trim(),
+      email: $('#regEmail').value.trim(),
+      password: $('#regPassword').value,
+    }, { skipAuthRedirect: true });
+    btn.disabled = false; btn.textContent = 'Create Account';
+    if (!res || res.error) { showAuthError(res?.error || 'Could not create account.'); return; }
+    setSession(res.access_token, res.user);
+    toast(`Welcome to Verdict, ${res.user.name.split(' ')[0]}`);
+    showApp();
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   BOOT
+   ══════════════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', async () => {
+  wireAuthScreen();
+
+  $$('.nav-item').forEach(el => el.addEventListener('click', () => nav(el.dataset.nav)));
+  $('#globalSearch').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const q = e.target.value.trim();
+      if (!q) return;
+      Verdict.state.pendingQuery = q;
+      nav('discover');
+    }
+  });
+  $('#logoutBtn').addEventListener('click', () => {
+    clearSession();
+    toast('Logged out');
+    showAuthScreen();
+  });
+  function tickClock() { const el = $('#sbClock'); if (el) el.textContent = new Date().toLocaleTimeString(); }
+  setInterval(tickClock, 1000); tickClock();
+
+  // Resume an existing session if the stored token still checks out.
+  const token = getToken();
+  const cachedUser = localStorage.getItem('verdict_user');
+  if (token && cachedUser) {
+    Verdict.state.user = JSON.parse(cachedUser);
+    const me = await apiGet('/auth/me', undefined, { skipAuthRedirect: true });
+    if (me && !me.error) {
+      Verdict.state.user = me;
+      showApp();
+      return;
+    }
+    clearSession();
+  }
+  showAuthScreen();
+});
+</script>
+</body>
+</html>

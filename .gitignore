@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+.env
+verdict_dev.db
